@@ -324,4 +324,27 @@ int SaveArrayAsImages<signed char>( int w, int h, int nCh, int num, const signed
 }
 
 #endif  // USE_OPENCV
+
+
+void create_dir( const std::string& path, bool no_throw ) {
+  boost::filesystem::path p(path);
+    if (no_throw) {
+        try { boost::filesystem::create_directories(p); }
+        catch (...) {}
+    } else {
+      boost::filesystem::create_directories(p);
+    }
+}
+
+void create_parent_dir( const std::string& path, bool no_throw ) {
+  boost::filesystem::path p(path);
+    if (no_throw) {
+        try { boost::filesystem::create_directories(p.parent_path()); }
+        catch (...) {}
+    } else {
+      boost::filesystem::create_directories(p.parent_path());
+    }
+}
+
+
 }  // namespace caffe
