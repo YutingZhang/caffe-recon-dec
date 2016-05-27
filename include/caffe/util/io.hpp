@@ -145,6 +145,12 @@ cv::Mat DecodeDatumToCVMatNative(const Datum& datum);
 cv::Mat DecodeDatumToCVMat(const Datum& datum, bool is_color);
 
 void CVMatToDatum(const cv::Mat& cv_img, Datum* datum);
+
+template <typename Dtype>
+int SaveArrayAsImages( int w, int h, int nCh, int num, const Dtype* data,
+    const std::string& file_prefix, int start_idx, size_t padding_zeros = 10,
+    const bool force_slice_channel = false );
+
 #endif  // USE_OPENCV
 
 }  // namespace caffe

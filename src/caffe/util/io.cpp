@@ -234,5 +234,94 @@ void CVMatToDatum(const cv::Mat& cv_img, Datum* datum) {
   }
   datum->set_data(buffer);
 }
+
+template <>
+int SaveArrayAsImages<unsigned char>( int W, int H, int nCh, int num, const unsigned char* data,
+    const std::string& file_prefix, int start_idx, size_t padding_zeros, const bool force_slice_channel ) {
+  cv::Mat cv_img;
+    int nChImg = 1, nSlice = 1;
+  if (!force_slice_channel && nCh==3) {
+    nChImg = 3;
+    cv_img = cv::Mat(H,W,CV_8UC3);
+  } else if (nCh>0) {
+    nSlice = nCh;
+    cv_img = cv::Mat(H,W,CV_8UC1);
+    } else {
+    LOG(ERROR) << "Must be positive number of channels";
+  }
+
+  vector<int> compression_params;
+  compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+  compression_params.push_back(9);
+
+  size_t slice_padding_zeros = static_cast<size_t>(std::ceil(std::log(double(nSlice+1))));
+
+  for ( int k = 0; k<num; ++k ) {
+    std::string file_idx_str;
+    {
+      std::ostringstream ss;
+      ss << std::setw(padding_zeros) << std::setfill('0') << (k+start_idx);
+      file_idx_str = ss.str();
+    }
+    for ( int j = 0; j<nSlice; ++j ) {
+      const unsigned char* cur_data = data + H*W*(nCh*k+j);
+      for (int h = 0; h < H; ++h) {
+        uchar* ptr = cv_img.ptr<uchar>(h);
+        int img_index = 0;
+        for (int w = 0; w < W; ++w) {
+          for (int c = 0; c < nChImg; ++c) {
+            int datum_index = (c * H + h) * W + w;
+            ptr[img_index++] = static_cast<uchar>(cur_data[datum_index]);
+          }
+        }
+      }
+      std::string slice_idx_str;
+      if (nSlice>1) {
+        std::ostringstream ss;
+        ss << "-" << std::setw(slice_padding_zeros) << std::setfill('0') << j;
+        slice_idx_str = ss.str();
+      }
+      const std::string img_filename = file_prefix + file_idx_str + slice_idx_str + ".png";
+
+      if (!k) create_parent_dir(img_filename);
+
+      cv::imwrite( img_filename, cv_img, compression_params );
+    }
+  }
+  return start_idx+num;
+}
+
+template <>
+int SaveArrayAsImages<float>( int w, int h, int nCh, int num, const float* data,
+    const std::string& file_prefix, int start_idx, size_t padding_zeros, const bool force_slice_channel ) {
+  std::vector<unsigned char> data_c(w*h*nCh*num);
+  for (size_t i=0; i<data_c.size(); ++i) {
+        float a = std::floor(data[i]*256.f);
+        a = std::min(255.f,std::max(0.f,a));
+    data_c[i] = static_cast<unsigned char>(a);
+    }
+  return SaveArrayAsImages( w, h, nCh, num, &(data_c[0]), file_prefix, start_idx, padding_zeros, force_slice_channel );
+}
+
+template <>
+int SaveArrayAsImages<double>( int w, int h, int nCh, int num, const double* data,
+    const std::string& file_prefix, int start_idx, size_t padding_zeros, const bool force_slice_channel ) {
+  std::vector<unsigned char> data_c(w*h*nCh*num);
+  for (size_t i=0; i<data_c.size(); ++i) {
+        double a = std::floor(data[i]*256.);
+        a = std::min(255.,std::max(0.,a));
+    data_c[i] = static_cast<unsigned char>(a);
+    }
+  return SaveArrayAsImages( w, h, nCh, num, &(data_c[0]), file_prefix, start_idx, padding_zeros, force_slice_channel );
+}
+
+template <>
+int SaveArrayAsImages<signed char>( int w, int h, int nCh, int num, const signed char* data,
+    const std::string& file_prefix, int start_idx, size_t padding_zeros, const bool force_slice_channel ) {
+  const unsigned char* data1 = static_cast<const unsigned char*>(
+            static_cast<const void*>(data));
+  return SaveArrayAsImages( w, h, nCh, num, data1, file_prefix, start_idx, padding_zeros, force_slice_channel );
+}
+
 #endif  // USE_OPENCV
 }  // namespace caffe

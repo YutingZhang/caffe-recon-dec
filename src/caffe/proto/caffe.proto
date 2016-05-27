@@ -402,6 +402,8 @@ message LayerParameter {
   optional ThresholdParameter threshold_param = 128;
   optional TileParameter tile_param = 138;
   optional WindowDataParameter window_data_param = 129;
+
+  optional ImageOutputParameter image_output_param = 221;
 }
 
 // Message that stores parameters used to apply transformation
@@ -1179,6 +1181,22 @@ message SPPParameter {
     CUDNN = 2;
   }
   optional Engine engine = 6 [default = DEFAULT];
+}
+
+message ImageOutputParameter {
+  optional string output_prefix = 1 [ default = "image_output/" ];
+  enum NormalizationMethod {
+    SCALE      = 1;
+    AutoSCALE  = 2;
+  }
+  optional uint32 base_idx = 2 [ default = 0 ];
+  optional uint32 filename_padding = 3 [ default = 10 ];
+  optional uint32 print_iter = 4 [ default = 0 ];
+  optional NormalizationMethod normalization = 11 [ default = SCALE ];
+  optional float scale  = 12 [ default = 1. ];
+  optional float offset = 13 [ default = 0. ];
+  optional bool force_slice_channels = 14 [ default = false ];
+  optional float auto_ratio = 15 [default = 1.];
 }
 
 // DEPRECATED: use LayerParameter.
