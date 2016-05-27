@@ -883,6 +883,10 @@ message PoolingParameter {
     MAX = 0;
     AVE = 1;
     STOCHASTIC = 2;
+    FIX = 31;
+    SWITCH = 32;
+    SOFT_SWITCH = 33;
+    SUM = 34;
   }
   optional PoolMethod pool = 1 [default = MAX]; // The pooling method
   // Pad, kernel size, and stride are all given as a single value for equal
@@ -905,6 +909,17 @@ message PoolingParameter {
   // If global_pooling then it will pool over the size of the bottom by doing
   // kernel_h = bottom->height and kernel_w = bottom->width
   optional bool global_pooling = 12 [default = false];
+  
+  optional int32 fix   = 31 [default = -1]; // -1 for center
+  optional int32 fix_x = 32 [default = -1]; // -1 for center
+  optional int32 fix_y = 33 [default = -1]; // -1 for center
+  
+  enum MaskIndexType {
+    GLOBAL = 0;
+    LOCAL = 1;
+  }
+  optional MaskIndexType mask_index_type = 35 [default = GLOBAL];
+  
 }
 
 message PowerParameter {

@@ -46,6 +46,7 @@ void PoolingLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       kernel_w_ = pool_param.kernel_w();
     }
   }
+
   CHECK_GT(kernel_h_, 0) << "Filter dimensions cannot be zero.";
   CHECK_GT(kernel_w_, 0) << "Filter dimensions cannot be zero.";
   if (!pool_param.has_pad_h()) {
@@ -68,11 +69,36 @@ void PoolingLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     CHECK(this->layer_param_.pooling_param().pool()
         == PoolingParameter_PoolMethod_AVE
         || this->layer_param_.pooling_param().pool()
-        == PoolingParameter_PoolMethod_MAX)
+        == PoolingParameter_PoolMethod_MAX
+        || this->layer_param_.pooling_param().pool()
+        == PoolingParameter_PoolMethod_SUM
+        || this->layer_param_.pooling_param().pool()
+        == PoolingParameter_PoolMethod_SWITCH
+        || this->layer_param_.pooling_param().pool()
+        == PoolingParameter_PoolMethod_SOFT_SWITCH
+        )
         << "Padding implemented only for average and max pooling.";
     CHECK_LT(pad_h_, kernel_h_);
     CHECK_LT(pad_w_, kernel_w_);
   }
+
+  if (pool_param.pool() == PoolingParameter_PoolMethod_FIX ) {
+	  if (!pool_param.has_fix_y()) {
+		  fix_x_ = fix_y_ = pool_param.fix();
+	  } else {
+		  fix_x_ = pool_param.fix_x();
+		  fix_y_ = pool_param.fix_y();
+	  }
+	  if (fix_x_<0) fix_x_ = kernel_w_/2;
+	  if (fix_y_<0) fix_y_ = kernel_h_/2;
+  } else {
+	  CHECK(!pool_param.has_fix()) << "fix only works with FIX mode";
+	  CHECK(!pool_param.has_fix_x()) << "fix_x only works with FIX mode";
+	  CHECK(!pool_param.has_fix_y()) << "fix_y only works with FIX mode";
+  }
+
+  mask_index_type_ = pool_param.mask_index_type();
+
 }
 
 template <typename Dtype>
@@ -103,23 +129,41 @@ void PoolingLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     CHECK_LT((pooled_height_ - 1) * stride_h_, height_ + pad_h_);
     CHECK_LT((pooled_width_ - 1) * stride_w_, width_ + pad_w_);
   }
-  top[0]->Reshape(bottom[0]->num(), channels_, pooled_height_,
-      pooled_width_);
-  if (top.size() > 1) {
-    top[1]->ReshapeLike(*top[0]);
+
+  backward_weights_.ReshapeLike(*bottom[0]);
+
+  if (memory_op_) {
+
+      top[0]->Reshape(bottom[0]->num(), channels_, pooled_height_,
+          pooled_width_);
+      if (top.size() > 1) {
+        top[1]->ReshapeLike(*top[0]);
+      }
+      // If max pooling, we will initialize the vector index part.
+      if (this->layer_param_.pooling_param().pool() ==
+          PoolingParameter_PoolMethod_MAX && top.size() == 1) {
+        max_idx_.Reshape(bottom[0]->num(), channels_, pooled_height_,
+            pooled_width_);
+      }
+      // If stochastic pooling, we will initialize the random index part.
+      if (this->layer_param_.pooling_param().pool() ==
+          PoolingParameter_PoolMethod_STOCHASTIC) {
+        rand_idx_.Reshape(bottom[0]->num(), channels_, pooled_height_,
+          pooled_width_);
+      }
   }
-  // If max pooling, we will initialize the vector index part.
-  if (this->layer_param_.pooling_param().pool() ==
-      PoolingParameter_PoolMethod_MAX && top.size() == 1) {
-    max_idx_.Reshape(bottom[0]->num(), channels_, pooled_height_,
-        pooled_width_);
+
+  if ( this->layer_param_.pooling_param().pool() ==
+          PoolingParameter_PoolMethod_SWITCH ) {
+	  // Check bottom[1]
+	  CHECK( bottom[1]->shape() == top[0]->shape() ) << "wrong size of switch input";
+  } else if ( this->layer_param_.pooling_param().pool() ==
+          PoolingParameter_PoolMethod_SOFT_SWITCH ) {
+	  auto switch_shape = top[0]->shape();
+	  switch_shape.insert( switch_shape.begin()+1, kernel_w_*kernel_h_ );
+	  CHECK( bottom[1]->shape() == switch_shape ) << "wrong size of soft switch input";
   }
-  // If stochastic pooling, we will initialize the random index part.
-  if (this->layer_param_.pooling_param().pool() ==
-      PoolingParameter_PoolMethod_STOCHASTIC) {
-    rand_idx_.Reshape(bottom[0]->num(), channels_, pooled_height_,
-      pooled_width_);
-  }
+
 }
 
 // TODO(Yangqing): Is there a faster way to do pooling in the channel-first
@@ -128,6 +172,8 @@ template <typename Dtype>
 void PoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->cpu_data();
+  const Dtype* bottom_switch = (this->layer_param_.pooling_param().pool() ==
+          PoolingParameter_PoolMethod_SWITCH) ? bottom[1]->cpu_data() : NULL;
   Dtype* top_data = top[0]->mutable_cpu_data();
   const int top_count = top[0]->count();
   // We'll output the mask to top[1] if it's of size >1.
@@ -152,22 +198,24 @@ void PoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       for (int c = 0; c < channels_; ++c) {
         for (int ph = 0; ph < pooled_height_; ++ph) {
           for (int pw = 0; pw < pooled_width_; ++pw) {
-            int hstart = ph * stride_h_ - pad_h_;
-            int wstart = pw * stride_w_ - pad_w_;
-            int hend = min(hstart + kernel_h_, height_);
-            int wend = min(wstart + kernel_w_, width_);
-            hstart = max(hstart, 0);
-            wstart = max(wstart, 0);
+            int hstart0 = ph * stride_h_ - pad_h_;
+            int wstart0 = pw * stride_w_ - pad_w_;
+            int hend = min(hstart0 + kernel_h_, height_);
+            int wend = min(wstart0 + kernel_w_, width_);
+            int hstart = max(hstart0, 0);
+            int wstart = max(wstart0, 0);
             const int pool_index = ph * pooled_width_ + pw;
             for (int h = hstart; h < hend; ++h) {
               for (int w = wstart; w < wend; ++w) {
                 const int index = h * width_ + w;
                 if (bottom_data[index] > top_data[pool_index]) {
                   top_data[pool_index] = bottom_data[index];
+                  const int stored_index = ( mask_index_type_ == PoolingParameter_MaskIndexType_LOCAL )?
+                		  ( (h-hstart0)*kernel_w_+(w-wstart0) ):( index );
                   if (use_top_mask) {
-                    top_mask[pool_index] = static_cast<Dtype>(index);
+                    top_mask[pool_index] = static_cast<Dtype>(stored_index);
                   } else {
-                    mask[pool_index] = index;
+                    mask[pool_index] = stored_index;
                   }
                 }
               }
@@ -218,9 +266,136 @@ void PoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       }
     }
     break;
+  case PoolingParameter_PoolMethod_SUM:
+    for (int i = 0; i < top_count; ++i) {
+      top_data[i] = 0;
+    }
+    // The main loop
+    for (int n = 0; n < bottom[0]->num(); ++n) {
+      for (int c = 0; c < channels_; ++c) {
+        for (int ph = 0; ph < pooled_height_; ++ph) {
+          for (int pw = 0; pw < pooled_width_; ++pw) {
+            int hstart = ph * stride_h_ - pad_h_;
+            int wstart = pw * stride_w_ - pad_w_;
+            int hend = min(hstart + kernel_h_, height_ + pad_h_);
+            int wend = min(wstart + kernel_w_, width_ + pad_w_);
+            hstart = max(hstart, 0);
+            wstart = max(wstart, 0);
+            hend = min(hend, height_);
+            wend = min(wend, width_);
+            for (int h = hstart; h < hend; ++h) {
+              for (int w = wstart; w < wend; ++w) {
+                top_data[ph * pooled_width_ + pw] +=
+                    bottom_data[h * width_ + w];
+              }
+            }
+          }
+        }
+        // compute offset
+        bottom_data += bottom[0]->offset(0, 1);
+        top_data += top[0]->offset(0, 1);
+      }
+    }
+    break;
   case PoolingParameter_PoolMethod_STOCHASTIC:
     NOT_IMPLEMENTED;
     break;
+  case PoolingParameter_PoolMethod_FIX:
+	    caffe_set(top_count, Dtype(-FLT_MAX), top_data);
+	    // The main loop
+	    for (int n = 0; n < bottom[0]->num(); ++n) {
+	      for (int c = 0; c < channels_; ++c) {
+	        for (int ph = 0; ph < pooled_height_; ++ph) {
+	          for (int pw = 0; pw < pooled_width_; ++pw) {
+	            int hstart = ph * stride_h_ - pad_h_;
+	            int wstart = pw * stride_w_ - pad_w_;
+	            const int pool_index = ph * pooled_width_ + pw;
+	            int h = hstart + fix_y_;
+	            int w = wstart + fix_x_;
+	            if (h<0 || h>=height_ || w<0 || w>=width_) {
+	            	top_data[pool_index] = Dtype(0);
+	            } else {
+	            	const int index = h * width_ + w;
+	            	top_data[pool_index] = bottom_data[index];
+	            }
+	          }
+	        }
+	        // compute offset
+	        bottom_data += bottom[0]->offset(0, 1);
+	        top_data += top[0]->offset(0, 1);
+	      }
+	    }
+	  break;
+  case PoolingParameter_PoolMethod_SWITCH:
+	    caffe_set(top_count, Dtype(-FLT_MAX), top_data);
+	    // The main loop
+	    for (int n = 0; n < bottom[0]->num(); ++n) {
+	      for (int c = 0; c < channels_; ++c) {
+	        for (int ph = 0; ph < pooled_height_; ++ph) {
+	          for (int pw = 0; pw < pooled_width_; ++pw) {
+	        	const int pool_index = ph * pooled_width_ + pw;
+	        	if ( mask_index_type_ == PoolingParameter_MaskIndexType_LOCAL ) {
+					int hstart = ph * stride_h_ - pad_h_;
+					int wstart = pw * stride_w_ - pad_w_;
+					const int local_index = bottom_switch[pool_index];
+					int h = hstart + local_index / kernel_w_;
+					int w = wstart + local_index % kernel_w_;
+					if (h<0 || h>=height_ || w<0 || w>=width_) {
+						top_data[pool_index] = Dtype(0);
+					} else {
+						const int index = h * width_ + w;
+						top_data[pool_index] = bottom_data[index];
+					}
+	        	} else {
+	        		const int index = bottom_switch[pool_index];
+	        		top_data[pool_index] = bottom_data[index];
+	        	}
+	          }
+	        }
+	        // compute offset
+	        bottom_data += bottom[0]->offset(0, 1);
+	        bottom_switch += bottom[1]->offset(0, 1);
+	        top_data += top[0]->offset(0, 1);
+	      }
+	    }
+	  break;
+  case PoolingParameter_PoolMethod_SOFT_SWITCH:
+    for (int i = 0; i < top_count; ++i) {
+      top_data[i] = 0;
+    }
+    // The main loop
+    for (int n = 0; n < bottom[0]->num(); ++n) {
+      for (int c = 0; c < channels_; ++c) {
+        for (int ph = 0; ph < pooled_height_; ++ph) {
+          for (int pw = 0; pw < pooled_width_; ++pw) {
+            int hstart0 = ph * stride_h_ - pad_h_;
+            int wstart0 = pw * stride_w_ - pad_w_;
+            int hend = min(hstart0 + kernel_h_, height_ + pad_h_);
+            int wend = min(wstart0 + kernel_w_, width_ + pad_w_);
+            int hstart = max(hstart0, 0);
+            int wstart = max(wstart0, 0);
+            hend = min(hend, height_);
+            wend = min(wend, width_);
+            int top_index = ph * pooled_width_ + pw;
+            for (int h = hstart; h < hend; ++h) {
+              for (int w = wstart; w < wend; ++w) {
+            	  int data_index = h * width_ + w;
+            	  int local_index  = (h-hstart0)*kernel_w_+(w-wstart0);
+            	  int switch_index = local_index*pooled_width_*pooled_height_+top_index;
+                  top_data[top_index] +=
+                		  bottom_data[data_index] * bottom_switch[switch_index];
+              }
+            }
+          }
+        }
+        // compute offset
+        bottom_data += bottom[0]->offset(0, 1);
+        bottom_switch += bottom[1]->offset(0,1);
+        top_data += top[0]->offset(0, 1);
+      }
+    }
+    break;
+
   default:
     LOG(FATAL) << "Unknown pooling method.";
   }
@@ -232,6 +407,11 @@ void PoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   if (!propagate_down[0]) {
     return;
   }
+
+  const int bottom_count = bottom[0]->count();
+  Dtype* bweights = backward_weights_.mutable_cpu_data();
+  caffe_set(bottom_count, Dtype(0), bweights);
+
   const Dtype* top_diff = top[0]->cpu_diff();
   Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
   // Different pooling methods. We explicitly do the switch outside the for
@@ -242,26 +422,44 @@ void PoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   const int* mask = NULL;  // suppress warnings about uninitialized variables
   const Dtype* top_mask = NULL;
   switch (this->layer_param_.pooling_param().pool()) {
+  case PoolingParameter_PoolMethod_SWITCH:
+	  top_mask = bottom[1]->cpu_data();
   case PoolingParameter_PoolMethod_MAX:
     // The main loop
-    if (use_top_mask) {
-      top_mask = top[1]->cpu_data();
-    } else {
-      mask = max_idx_.cpu_data();
-    }
+	if (!top_mask) {
+		if (use_top_mask) {
+		  top_mask = top[1]->cpu_data();
+		} else {
+		  mask = max_idx_.cpu_data();
+		}
+	}
     for (int n = 0; n < top[0]->num(); ++n) {
       for (int c = 0; c < channels_; ++c) {
         for (int ph = 0; ph < pooled_height_; ++ph) {
           for (int pw = 0; pw < pooled_width_; ++pw) {
             const int index = ph * pooled_width_ + pw;
-            const int bottom_index =
-                use_top_mask ? top_mask[index] : mask[index];
+            const int bottom_stored_index =
+            		top_mask ? top_mask[index] : mask[index];
+            int bottom_index;
+            if ( mask_index_type_ == PoolingParameter_MaskIndexType_LOCAL ) {
+            	int offset_y = bottom_stored_index/kernel_w_;
+            	int offset_x = bottom_stored_index%kernel_w_;
+    			int hstart = ph * stride_h_ - pad_h_;
+    			int wstart = pw * stride_w_ - pad_w_;
+                int h = hstart + offset_y;
+                int w = wstart + offset_x;
+                bottom_index = h * width_ + w;
+            } else {
+            	bottom_index = bottom_stored_index;
+            }
             bottom_diff[bottom_index] += top_diff[index];
+            bweights[bottom_index] += Dtype(1.);
           }
         }
+        bweights += backward_weights_.offset(0, 1);
         bottom_diff += bottom[0]->offset(0, 1);
         top_diff += top[0]->offset(0, 1);
-        if (use_top_mask) {
+        if (top_mask) {
           top_mask += top[0]->offset(0, 1);
         } else {
           mask += top[0]->offset(0, 1);
@@ -288,11 +486,43 @@ void PoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
               for (int w = wstart; w < wend; ++w) {
                 bottom_diff[h * width_ + w] +=
                   top_diff[ph * pooled_width_ + pw] / pool_size;
+                bweights[h * width_ + w] += Dtype(1.)/Dtype(pool_size);
               }
             }
           }
         }
         // offset
+        bweights += backward_weights_.offset(0, 1);
+        bottom_diff += bottom[0]->offset(0, 1);
+        top_diff += top[0]->offset(0, 1);
+      }
+    }
+    break;
+  case PoolingParameter_PoolMethod_SUM:
+    // The main loop
+    for (int n = 0; n < top[0]->num(); ++n) {
+      for (int c = 0; c < channels_; ++c) {
+        for (int ph = 0; ph < pooled_height_; ++ph) {
+          for (int pw = 0; pw < pooled_width_; ++pw) {
+            int hstart = ph * stride_h_ - pad_h_;
+            int wstart = pw * stride_w_ - pad_w_;
+            int hend = min(hstart + kernel_h_, height_ + pad_h_);
+            int wend = min(wstart + kernel_w_, width_ + pad_w_);
+            hstart = max(hstart, 0);
+            wstart = max(wstart, 0);
+            hend = min(hend, height_);
+            wend = min(wend, width_);
+            for (int h = hstart; h < hend; ++h) {
+              for (int w = wstart; w < wend; ++w) {
+                bottom_diff[h * width_ + w] +=
+                  top_diff[ph * pooled_width_ + pw];
+                bweights[h * width_ + w] += Dtype(1.);
+              }
+            }
+          }
+        }
+        // offset
+        bweights += backward_weights_.offset(0, 1);
         bottom_diff += bottom[0]->offset(0, 1);
         top_diff += top[0]->offset(0, 1);
       }
@@ -301,9 +531,72 @@ void PoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   case PoolingParameter_PoolMethod_STOCHASTIC:
     NOT_IMPLEMENTED;
     break;
+  case PoolingParameter_PoolMethod_FIX:
+    // The main loop
+	for (int n = 0; n < top[0]->num(); ++n) {
+	  for (int c = 0; c < channels_; ++c) {
+		for (int ph = 0; ph < pooled_height_; ++ph) {
+		  for (int pw = 0; pw < pooled_width_; ++pw) {
+			int hstart = ph * stride_h_ - pad_h_;
+			int wstart = pw * stride_w_ - pad_w_;
+            int h = hstart + fix_y_;
+            int w = wstart + fix_x_;
+            if (!(h<0 || h>=height_ || w<0 || w>=width_)) {
+            	const int pool_index = ph * pooled_width_ + pw;
+            	const int index = h * width_ + w;
+				bottom_diff[index] += top_diff[pool_index];
+            }
+		  }
+		}
+		// offset
+		bweights += backward_weights_.offset(0, 1);
+		bottom_diff += bottom[0]->offset(0, 1);
+		top_diff += top[0]->offset(0, 1);
+	  }
+    }
+	break;
+  case PoolingParameter_PoolMethod_SOFT_SWITCH:
+  {
+    const Dtype* bottom_switch = bottom[1]->cpu_data();
+    // The main loop
+    for (int n = 0; n < top[0]->num(); ++n) {
+      for (int c = 0; c < channels_; ++c) {
+        for (int ph = 0; ph < pooled_height_; ++ph) {
+          for (int pw = 0; pw < pooled_width_; ++pw) {
+            int hstart0 = ph * stride_h_ - pad_h_;
+            int wstart0 = pw * stride_w_ - pad_w_;
+            int hend = min(hstart0 + kernel_h_, height_ + pad_h_);
+            int wend = min(wstart0 + kernel_w_, width_ + pad_w_);
+            int hstart = max(hstart0, 0);
+            int wstart = max(wstart0, 0);
+            hend = min(hend, height_);
+            wend = min(wend, width_);
+            int top_index = ph * pooled_width_ + pw;
+            for (int h = hstart; h < hend; ++h) {
+              for (int w = wstart; w < wend; ++w) {
+            	  int data_index   = h * width_ + w;
+            	  int local_index  = (h-hstart0)*kernel_w_+(w-wstart0);
+            	  int switch_index = local_index*pooled_width_*pooled_height_+top_index;
+                  bottom_diff[data_index] +=
+                		  top_diff[top_index] * bottom_switch[switch_index];
+                  bweights[data_index] += bottom_switch[data_index];
+              }
+            }
+          }
+        }
+        // offset
+        bweights += backward_weights_.offset(0, 1);
+        bottom_diff += bottom[0]->offset(0, 1);
+        bottom_switch += bottom[1]->offset(0, 1);
+        top_diff += top[0]->offset(0, 1);
+      }
+    }
+  }
+    break;
   default:
     LOG(FATAL) << "Unknown pooling method.";
   }
+
 }
 
 
