@@ -149,4 +149,9 @@ void CVMatToDatum(const cv::Mat& cv_img, Datum* datum);
 
 }  // namespace caffe
 
+void create_dir( const std::string& path, bool no_throw = true );
+
+void create_parent_dir( const std::string& path, bool no_throw = true );
+
+
 #endif   // CAFFE_UTIL_IO_H_

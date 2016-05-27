@@ -235,4 +235,27 @@ void CVMatToDatum(const cv::Mat& cv_img, Datum* datum) {
   datum->set_data(buffer);
 }
 #endif  // USE_OPENCV
+
+
+void create_dir( const std::string& path, bool no_throw ) {
+  boost::filesystem::path p(path);
+    if (no_throw) {
+        try { boost::filesystem::create_directories(p); }
+        catch (...) {}
+    } else {
+      boost::filesystem::create_directories(p);
+    }
+}
+
+void create_parent_dir( const std::string& path, bool no_throw ) {
+  boost::filesystem::path p(path);
+    if (no_throw) {
+        try { boost::filesystem::create_directories(p.parent_path()); }
+        catch (...) {}
+    } else {
+      boost::filesystem::create_directories(p.parent_path());
+    }
+}
+
+
 }  // namespace caffe
