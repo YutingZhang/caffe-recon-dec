@@ -415,4 +415,21 @@ void caffe_gpu_rng_gaussian(const int n, const double mu, const double sigma,
       curandGenerateNormalDouble(Caffe::curand_generator(), r, n, mu, sigma));
 }
 
+template <typename Dtype>
+__global__ void zcaffe_gpu_safeinv_kernel(const int n, const Dtype* in, Dtype* out, const Dtype numerator) {
+  CUDA_KERNEL_LOOP(index, n) {
+    out[index] = (in[index] == Dtype(0.)) ? 0: (numerator/in[index]);
+  }
+}
+
+template <typename Dtype>
+void zcaffe_gpu_safeinv( const int n, const Dtype* in, Dtype* out, const Dtype numerator ) {
+  zcaffe_gpu_safeinv_kernel<Dtype><<<CAFFE_GET_BLOCKS(n), CAFFE_CUDA_NUM_THREADS>>>(
+        n, in, out, numerator);
+}
+
+template void zcaffe_gpu_safeinv<float>( const int n, const float* in, float* out, const float numerator );
+template void zcaffe_gpu_safeinv<double>( const int n, const double* in, double* out, const double numerator );
+
+
 }  // namespace caffe
