@@ -146,6 +146,35 @@ void Blob<Dtype>::ShareDiff(const Blob& other) {
   diff_ = other.diff();
 }
 
+template <typename Dtype>
+void Blob<Dtype>::ShareDataDiff(const Blob& other) {
+  CHECK_EQ(count_, other.count());
+  data_ = other.data();
+  diff_ = other.diff();
+}
+
+
+template <typename Dtype>
+void Blob<Dtype>::ShareSwappedDataDiff(const Blob& other) {
+  CHECK_EQ(count_, other.count());
+  diff_ = other.data();
+  data_ = other.diff();
+}
+
+template <typename Dtype>
+void Blob<Dtype>::ShareDataAsDiff(const Blob& other) {
+  CHECK_EQ(count_, other.count());
+  diff_ = other.data();
+}
+
+template <typename Dtype>
+void Blob<Dtype>::ShareDiffAsData(const Blob& other) {
+  CHECK_EQ(count_, other.count());
+  diff_ = other.data();
+  data_ = other.diff();
+}
+
+
 // The "update" method is used for parameter blobs in a Net, which are stored
 // as Blob<float> or Blob<double> -- hence we do not define it for
 // Blob<int> or Blob<unsigned int>.

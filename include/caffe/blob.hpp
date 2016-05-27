@@ -263,6 +263,49 @@ class Blob {
    */
   void ShareDiff(const Blob& other);
 
+  /**
+   * @brief Set the data_ shared_ptr to point to the SyncedMemory holding the
+   *        data_ of Blob other -- useful in Layer%s which simply perform a copy
+   *        in their Forward pass.
+   *        Also, set the diff_ shared_ptr to point to the SyncedMemory holding the
+   *        diff_ of Blob other -- useful in Layer%s which simply perform a copy
+   *        in their Forward pass.
+   *
+   * This deallocates the SyncedMemory holding this Blob's data and diff_, as
+   * shared_ptr calls its destructor when reset with the "=" operator.
+   */
+  void ShareDataDiff(const Blob& other);
+  /**
+   * @brief Set the diff_ shared_ptr to point to the SyncedMemory holding the
+   *        data_ of Blob other -- useful in Layer%s which simply perform a copy
+   *        in their Forward pass.
+   *        Also, set the data_ shared_ptr to point to the SyncedMemory holding the
+   *        diff_ of Blob other -- useful in Layer%s which simply perform a copy
+   *        in their Forward pass.
+   *
+   * This deallocates the SyncedMemory holding this Blob's data_ and diff_, as
+   * shared_ptr calls its destructor when reset with the "=" operator.
+   */
+  void ShareSwappedDataDiff(const Blob& other);
+  /**
+   * @brief Set the diff_ shared_ptr to point to the SyncedMemory holding the
+   *        data_ of Blob other -- useful in Layer%s which simply perform a copy
+   *        in their Forward pass.
+   *
+   * This deallocates the SyncedMemory holding this Blob's diff_, as
+   * shared_ptr calls its destructor when reset with the "=" operator.
+   */
+  void ShareDataAsDiff(const Blob& other);
+  /**
+   * @brief Set the data_ shared_ptr to point to the SyncedMemory holding the
+   *        diff_ of Blob other -- useful in Layer%s which simply perform a copy
+   *        in their Forward pass.
+   *
+   * This deallocates the SyncedMemory holding this Blob's data_, as
+   * shared_ptr calls its destructor when reset with the "=" operator.
+   */
+  void ShareDiffAsData(const Blob& other);
+
   bool ShapeEquals(const BlobProto& other);
 
  protected:
