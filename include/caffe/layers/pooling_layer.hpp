@@ -14,18 +14,24 @@ namespace caffe {
  *
  * TODO(dox): thorough documentation for Forward, Backward, and proto params.
  */
+
 template <typename Dtype>
 class PoolingLayer : public Layer<Dtype> {
+	template<typename> friend class DepoolingLayer;
  public:
   explicit PoolingLayer(const LayerParameter& param)
-      : Layer<Dtype>(param) {}
+      : Layer<Dtype>(param), memory_op_(true) {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "Pooling"; }
-  virtual inline int ExactNumBottomBlobs() const { return 1; }
+  virtual inline int ExactNumBottomBlobs() const {
+	  int pool_type = this->layer_param_.pooling_param().pool();
+	  return ( pool_type == PoolingParameter_PoolMethod_SWITCH ||
+			  pool_type == PoolingParameter_PoolMethod_SOFT_SWITCH ) ? 2 : 1;
+  }
   virtual inline int MinTopBlobs() const { return 1; }
   // MAX POOL layers can output an extra top blob for the mask;
   // others can only output the pooled inputs.
@@ -51,8 +57,16 @@ class PoolingLayer : public Layer<Dtype> {
   int height_, width_;
   int pooled_height_, pooled_width_;
   bool global_pooling_;
+  bool memory_op_;
   Blob<Dtype> rand_idx_;
   Blob<int> max_idx_;
+  int fix_x_, fix_y_;
+
+  int mask_index_type_;
+
+ protected:
+  Blob<Dtype> backward_weights_;
+  const Blob<Dtype>* backward_weights() {return &backward_weights_;}
 };
 
 }  // namespace caffe
