@@ -372,4 +372,15 @@ void caffe_cpu_scale<double>(const int n, const double alpha, const double *x,
   cblas_dscal(n, alpha, y, 1);
 }
 
+template <typename Dtype>
+void zcaffe_cpu_safeinv( const int n, const Dtype* in, Dtype* out, const Dtype numerator ) {
+  for (int i = 0; i < n; ++i) {
+  out[i] = (in[i] == Dtype(0))? (Dtype(0)) : (numerator/in[i]);
+  }
+}
+
+template void zcaffe_cpu_safeinv<float>( const int n, const float* in, float* out, const float numerator );
+template void zcaffe_cpu_safeinv<double>( const int n, const double* in, double* out, const double numerator );
+
+
 }  // namespace caffe
