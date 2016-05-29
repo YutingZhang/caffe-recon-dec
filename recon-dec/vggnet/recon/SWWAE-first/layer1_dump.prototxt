@@ -1,0 +1,177 @@
+input: "data"
+input: "mean"
+input_shape { dim: 1 dim: 3 dim: 224 dim: 224 }
+input_shape { dim: 1 dim: 3 dim: 224 dim: 224 }
+name:  "VGG_ILSVRC_16_layers"
+layer {
+  name:   "conv1_1"
+  type:   "Convolution"
+  top:    "conv1_1"
+  bottom: "data"
+  convolution_param {
+    num_output:   64
+    pad:    1
+    kernel_size:  3
+    weight_filler { type: "gaussian" std: 0.01 }
+    bias_filler   { type: "constant" value: 0 }
+    engine: CUDNN
+  }
+  param   { lr_mult: 0 decay_mult: 1 }
+  param   { lr_mult: 0 decay_mult: 0 }
+}
+layer {
+  name:   "conv1_1/relu"
+  type:   "ReLU"
+  top:    "conv1_1"
+  bottom: "conv1_1"
+}
+layer {
+  name:   "conv1_2"
+  type:   "Convolution"
+  top:    "conv1_2"
+  bottom: "conv1_1"
+  convolution_param {
+    num_output:   64
+    pad:    1
+    kernel_size:  3
+    weight_filler { type: "gaussian" std: 0.01 }
+    bias_filler   { type: "constant" value: 0 }
+    engine: CUDNN
+  }
+  param   { lr_mult: 0 decay_mult: 1 }
+  param   { lr_mult: 0 decay_mult: 0 }
+}
+layer {
+  name:   "conv1_2/relu"
+  type:   "ReLU"
+  top:    "conv1_2"
+  bottom: "conv1_2"
+}
+layer {
+  name:   "conv1_2/pool"
+  type:   "Pooling"
+  top:    "conv1_2/pool"
+  top:    "conv1_2/pool-mask"
+  bottom: "conv1_2"
+  pooling_param {
+    pool:   MAX
+    kernel_size: 2
+    stride: 2
+    engine: CUDNN
+  }
+}
+layer {
+  name:   "dec:conv1_2/unpool"
+  type:   "Depooling"
+  top:    "dec:conv1_2/unpool"
+  bottom: "conv1_2/pool"
+  bottom: "conv1_2/pool-mask"
+  pooling_param   { pool: SWITCH kernel_size: 2 stride: 2 }
+  propagate_down: true
+  propagate_down: false
+}
+layer {
+  name:   "dec:conv1_2"
+  type:   "Deconvolution"
+  top:    "dec:conv1_1"
+  bottom: "dec:conv1_2/unpool"
+  convolution_param {
+    num_output:   64
+    pad:    1
+    kernel_size:  3
+    weight_filler { type: "gaussian" std: 0.001 }
+    bias_filler   { type: "constant" value: 0 }
+    engine: CUDNN
+  }
+  param   { lr_mult: 1 decay_mult: 1 }
+  param   { lr_mult: 2 decay_mult: 0 }
+}
+layer {
+  name:   "dec:conv1_1/relu"
+  type:   "ReLU"
+  top:    "dec:conv1_1"
+  bottom: "dec:conv1_1"
+}
+layer {
+  name:   "dec:loss@conv1_1"
+  type:   "EuclideanLoss"
+  top:    "dec:loss@conv1_1"
+  bottom: "dec:conv1_1"
+  bottom: "conv1_1"
+  loss_weight: 0
+}
+layer {
+  name:   "dec:conv1_1"
+  type:   "Deconvolution"
+  top:    "dec:data"
+  bottom: "dec:conv1_1"
+  convolution_param {
+    num_output:   3
+    pad:    1
+    kernel_size:  3
+    weight_filler { type: "gaussian" std: 0.001 }
+    bias_filler   { type: "constant" value: 0 }
+    engine: CUDNN
+  }
+  param   { lr_mult: 1 decay_mult: 1 }
+  param   { lr_mult: 2 decay_mult: 0 }
+}
+layer {
+  name:   "data/scaled"
+  type:   "Power"
+  top:    "data/scaled"
+  bottom: "data"
+  power_param { scale: 0.00392156862745098 }
+}
+layer {
+  name:   "dec:loss@data/scaled"
+  type:   "EuclideanLoss"
+  top:    "dec:loss@data/scaled"
+  bottom: "dec:data"
+  bottom: "data/scaled"
+  loss_weight: 1
+}
+layer {
+  name:   "mean/scaled"
+  type:   "Power"
+  top:    "mean/scaled"
+  bottom: "mean"
+  power_param { scale: 0.00392156862745098 }
+}
+layer {
+  name:   "data/scaled/add-mean"
+  type:   "Eltwise"
+  top:    "data/scaled/add-mean"
+  bottom: "data/scaled"
+  bottom: "mean/scaled"
+  eltwise_param { operation: SUM }
+}
+layer {
+  name:   "dec:data/add-mean"
+  type:   "Eltwise"
+  top:    "dec:data/add-mean"
+  bottom: "dec:data"
+  bottom: "mean/scaled"
+  eltwise_param { operation: SUM }
+}
+layer {
+  name:   "dec:pair@data/scaled/add-mean"
+  type:   "Concat"
+  top:    "dec:pair@data/scaled/add-mean"
+  bottom: "data/scaled/add-mean"
+  bottom: "dec:data/add-mean"
+  concat_param { axis: 3 }
+}
+layer {
+  name:   "dec:dump@data/scaled/add-mean"
+  type:   "ImageOutput"
+  bottom: "dec:pair@data/scaled/add-mean"
+  image_output_param {
+    output_prefix: "dump/dec_data_add-mean/"
+  }
+}
+layer {
+  name:   "silence"
+  type:   "Silence"
+  bottom: "mean"
+}
