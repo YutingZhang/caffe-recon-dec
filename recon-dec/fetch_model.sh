@@ -11,7 +11,7 @@ MODEL_PATH=$1
 
 if [ "$MODEL_PATH" == "" ]; then
     cd "$SCRIPT_DIR"
-    find . -name '*_deploy.prototxt' |  while read line; do
+    find . -name '*_deploy.prototxt' | sort |  while read line; do
         MODEL_SUB_PATH=`echo "$line" | sed -e 's/_deploy\.prototxt$//'`
         cd "$CUR_DIR"
         "$0" "$MODEL_SUB_PATH"
@@ -19,7 +19,7 @@ if [ "$MODEL_PATH" == "" ]; then
     exit
 fi
 
-URL_PREFIX="http://www.ytzhang.net/files/publications/2016-icml-recon-dec/models/"
+URL_PREFIX="`cat $SCRIPT_DIR/url_prefix.txt`"
 
 SUB_FOLDER=`dirname "$MODEL_PATH"`
 cd $SCRIPT_DIR
