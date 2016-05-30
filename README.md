@@ -17,7 +17,7 @@ This software provides implementation of stacked convolutional (“what-where”
 This software is based on Caffe [3]. When complying with the license of the Caffe toolbox, you can distribute this software freely if its authors (Yuting Zhang, Kibok Lee, and Honglak Lee) are properly acknowledged. 
 
 Installation
-=========
+============
 
 Please refer to the [official Caffe tutorial](http://caffe.berkeleyvision.org/installation.html) for compiling the code. 
 
@@ -27,7 +27,7 @@ Apart from the requirement of the original Caffe, the support of C++11 standard,
 It has been tested with gcc-4.8.3, cuda-7.0, cudnn-4.0 on RedHat 6.x/7.x and Ubuntu 14.04. It should also work on other similar platforms. 
 
 Modifications to Official Caffe
-=====================
+===============================
 
 This code is based on a fork of [the official Caffe `master` branch](https://github.com/BVLC/caffe/tree/master) on May 26, 2016. Please refer to the `original-master` branch for the official Caffe. 
 
@@ -40,8 +40,8 @@ In terms of functionality, this code extends the official Caffe in the following
 * It provides a `SafeInvLayer`, which performs `f(x)=0` if `x=0`, and `f(x)=1/x` otherwise. It is useful to normalize the unpooled activations by unpooling weights.
 * It provides an `ImageOutputLayer` to easily dump activations to image files. 
 
-Network Definition
-==============
+Network Definitions
+===================
 
 Network definitions used in our paper are provided in the `recon-dec` folder.
 
@@ -78,7 +78,7 @@ In addition, the naming convention of layers is not the same as the official Ale
 * A decoding layer is named after the associate encoding layer with a `dec:` prefix. For example, `dec:conv1_2/relu` and `dec:conv1_2/pool`.
 
 Download Trained Models
-====================
+=======================
 
 The trained models for networks in `recon-dec` can be downloaded by the bash script `recon-dec/fetch_model.sh`. 
 
@@ -88,10 +88,10 @@ The trained models for networks in `recon-dec` can be downloaded by the bash scr
 As to the baseline classification-only networks: 
 
 * We trained an AlexNet from scratch with all `LRNLayer` removed for a cleaner architecture. 
-* We downloaded the 16-layer VGGNet (Model D in [2]) from <http://www.robots.ox.ac.uk/~vgg/research/very_deep/>, and converted the `caffemodel` to match the recent version of Caffe. 
+* We downloaded the 16-layer VGGNet (Model D in [2]) from <http://www.robots.ox.ac.uk/~vgg/research/very_deep/>, and converted/re-saved the `caffemodel` to match the recent version of Caffe. 
 
 References
-=========
+==========
 
 [1] Krizhevsky, A., Sutskever, I., and Hinton, G. E. Imagenet classification with deep convolutional neural networks. In NIPS, 2012.
 
