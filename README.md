@@ -46,7 +46,7 @@ Network Definition
 Network definitions used in our paper are provided in the `recon-dec` folder.
 
 * The base network `[base_network]` can be `alexnet` and `vggnet`.
-* The autoencoder model type can be `SAE-?` and `SWWAE-?`, where `?` can be `layerwise`, `first`, and `all`. 
+* The autoencoder model `[model_type]` type can be `SAE-?` and `SWWAE-?`, where `?` can be `layerwise`, `first`, and `all`. 
 
 The first-level subfolders indicate the base network, i.e.  
 
@@ -55,7 +55,7 @@ The first-level subfolders indicate the base network, i.e.
 The baseline classification network is provided as
 
 	recon-dec/[base_network]/baseline/cls_only_deploy.prototxt
-	
+
 The decoder for reconstructing network activations to images are provided as
 
 	recon-dec/[base_network]/recon/[model_type]/layer[layer_id]_depoly.prototxt
@@ -83,7 +83,12 @@ Download Trained Models
 The trained models for networks in `recon-dec` can be downloaded by the bash script `recon-dec/fetch_model.sh`. 
 
 * Without any argument, it fetches all available models. 
-* The user can also specify a particular model to download by `recon-dec/fetch_model.sh [model_name]`, where name of all available models can be obtained by `recon-dec/list_model.sh`   
+* The user can also specify a particular model to download by `recon-dec/fetch_model.sh [model_name]`, where name of all available models can be obtained by `recon-dec/list_model.sh` 
+
+As to the baseline classification-only networks: 
+
+* We trained an AlexNet from scratch with all `LRNLayer` removed for a cleaner architecture. 
+* We downloaded the 16-layer VGGNet (Model D in [2]) from <http://www.robots.ox.ac.uk/~vgg/research/very_deep/>, and converted the `caffemodel` to match the recent version of Caffe. 
 
 References
 =========
