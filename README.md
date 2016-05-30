@@ -22,14 +22,14 @@ Installation
 Please refer to the [official Caffe tutorial](http://caffe.berkeleyvision.org/installation.html) for compiling the code. 
 
 Apart from the requirement of the original Caffe, the support of C++11 standard, e.g., `-std=c++11` for GCC, are needed. 
-Remark: It is not hard to translate the code to non-C++11 version.
+*Remark: *It is not hard to translate the code to non-C++11 version.
 
 It has been tested with gcc-4.8.3, cuda-7.0, cudnn-4.0 on RedHat 6.x/7.x and Ubuntu 14.04. It should also work on other similar platforms. 
 
 Modifications to Official Caffe
 =====================
 
-This code is based on a fork of [the official Caffe `master`](https://github.com/BVLC/caffe/tree/master) branch on May 26, 2016. Please refer to the `original-master` branch for the official Caffe. 
+This code is based on a fork of [the official Caffe `master` branch](https://github.com/BVLC/caffe/tree/master) on May 26, 2016. Please refer to the `original-master` branch for the official Caffe. 
 
 In terms of functionality, this code extends the official Caffe in the following ways. 
 
@@ -43,15 +43,47 @@ In terms of functionality, this code extends the official Caffe in the following
 Network Definition
 ==============
 
+Network definitions used in our paper are provided in the `recon-dec` folder.
 
-Directory architecture
-Layer naming convention
-LossWeight
-DataLoader
+* The base network `[base_network]` can be `alexnet` and `vggnet`.
+* The autoencoder model type can be `SAE-?` and `SWWAE-?`, where `?` can be `layerwise`, `first`, and `all`. 
+
+The first-level subfolders indicate the base network, i.e.  
+
+	recon-dec/[base_network]
+
+The baseline classification network is provided as
+
+	recon-dec/[base_network]/baseline/cls_only_deploy.prototxt
+	
+The decoder for reconstructing network activations to images are provided as
+
+	recon-dec/[base_network]/recon/[model_type]/layer[layer_id]_depoly.prototxt
+	recon-dec/[base_network]/recon/[model_type]/layer[layer_id]_dump.prototxt
+
+where `[layer_id]` indicates which macro-layer of the encoder produces the input activations to the decoder. The decoders are supposed to be trained without affecting the encoder parameters. `*_deploy.prototxt` is the normal version of the network, and `*_dump.prototxt` is used to dump reconstructed images into disk.  
+
+The networks for joint reconstruction and classification are provided as
+
+	recon-dec/[base_network]/cls/[model_type]/layer[layer_id]_depoly.prototxt
+
+Here, classification pathways are supposed to be finetuned with decoding pathways.
+
+All the network definitions are provided in the `deploy` version. In particular, the data loading module is not provided, since it is up to the users to provide the training and testing data. 
+
+In addition, the naming convention of layers is not the same as the official AlexNet and VGGNet. More specifically, 
+
+* The naming for convolutional and inner-product layers are kept. 
+* An auxiliary layer (e.g., `ReLU`, `Pooling`, etc) is named after the preceding convolutional or fully connected layer with a type postfix. For example, `conv1_2/relu` and `conv1_2/pool`.
+* A decoding layer is named after the associate encoding layer with a `dec:` prefix. For example, `dec:conv1_2/relu` and `dec:conv1_2/pool`.
 
 Download Trained Models
 ====================
 
+The trained models for networks in `recon-dec` can be downloaded by the bash script `recon-dec/fetch_model.sh`. 
+
+* Without any argument, it fetches all available models. 
+* The user can also specify a particular model to download by `recon-dec/fetch_model.sh [model_name]`, where name of all available models can be obtained by `recon-dec/list_model.sh`   
 
 
 References
