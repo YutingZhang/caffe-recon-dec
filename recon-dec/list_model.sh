@@ -9,9 +9,9 @@ cd "$CUR_DIR"
 
 cd "$SCRIPT_DIR"
 find . -name '*_deploy.prototxt' | sort |  while read line; do
-    MODEL_SUB_PATH=`echo "$line" | sed -e 's/_deploy\.prototxt$//'`
+    MODEL_SUB_PATH=`echo "$line" | sed -e 's/_deploy\.prototxt$//' | sed -e 's/^\.\///'`
     cd "$CUR_DIR"
-    if [ -e $"SCRIPT_DIR"/"$MODEL_SUB_PATH.caffemodel" ]; then
+    if [ -e "$SCRIPT_DIR"/"$MODEL_SUB_PATH.caffemodel" ]; then
         echo "[downloaded] ""$MODEL_SUB_PATH"
     else
         echo "             ""$MODEL_SUB_PATH"
