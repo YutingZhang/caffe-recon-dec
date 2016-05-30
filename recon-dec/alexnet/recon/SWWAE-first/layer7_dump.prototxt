@@ -459,7 +459,6 @@ layer {
   top:    "dec:loss@data/scaled"
   bottom: "dec:data"
   bottom: "data/scaled"
-  loss_weight: 1
 }
 layer {
   name:   "mean/scaled"

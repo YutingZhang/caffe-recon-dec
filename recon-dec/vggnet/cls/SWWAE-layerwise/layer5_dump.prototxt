@@ -417,7 +417,6 @@ layer {
   top:    "dec:loss@conv4_3"
   bottom: "dec:conv4_3[2]"
   bottom: "conv4_3/pool"
-  loss_weight: 2e-05
 }
 layer {
   name:   "dec:conv4_3/unpool"
@@ -498,7 +497,6 @@ layer {
   top:    "dec:loss@conv3_3"
   bottom: "dec:conv3_3[2]"
   bottom: "conv3_3/pool"
-  loss_weight: 2e-08
 }
 layer {
   name:   "dec:conv3_3/unpool"
@@ -579,7 +577,6 @@ layer {
   top:    "dec:loss@conv2_2"
   bottom: "dec:conv2_2[2]"
   bottom: "conv2_2/pool"
-  loss_weight: 2e-09
 }
 layer {
   name:   "dec:conv2_2/unpool"
@@ -639,7 +636,6 @@ layer {
   top:    "dec:loss@conv1_2"
   bottom: "dec:conv1_2[2]"
   bottom: "conv1_2/pool"
-  loss_weight: 2e-09
 }
 layer {
   name:   "dec:conv1_2/unpool"
@@ -700,7 +696,6 @@ layer {
   top:    "dec:loss@data/scaled"
   bottom: "dec:data"
   bottom: "data/scaled"
-  loss_weight: 0.0001
 }
 layer {
   name:   "mean/scaled"

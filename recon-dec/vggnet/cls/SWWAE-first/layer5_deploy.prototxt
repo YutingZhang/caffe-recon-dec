@@ -373,7 +373,6 @@ layer {
   top:    "dec:loss@conv5_2"
   bottom: "dec:conv5_2"
   bottom: "conv5_2"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv5_2"
@@ -402,7 +401,6 @@ layer {
   top:    "dec:loss@conv5_1"
   bottom: "dec:conv5_1"
   bottom: "conv5_1"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv5_1"
@@ -431,7 +429,6 @@ layer {
   top:    "dec:loss@conv4_3"
   bottom: "dec:conv4_3"
   bottom: "conv4_3/pool"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv4_3/unpool"
@@ -470,7 +467,6 @@ layer {
   top:    "dec:loss@conv4_2"
   bottom: "dec:conv4_2"
   bottom: "conv4_2"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv4_2"
@@ -499,7 +495,6 @@ layer {
   top:    "dec:loss@conv4_1"
   bottom: "dec:conv4_1"
   bottom: "conv4_1"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv4_1"
@@ -528,7 +523,6 @@ layer {
   top:    "dec:loss@conv3_3"
   bottom: "dec:conv3_3"
   bottom: "conv3_3/pool"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv3_3/unpool"
@@ -567,7 +561,6 @@ layer {
   top:    "dec:loss@conv3_2"
   bottom: "dec:conv3_2"
   bottom: "conv3_2"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv3_2"
@@ -596,7 +589,6 @@ layer {
   top:    "dec:loss@conv3_1"
   bottom: "dec:conv3_1"
   bottom: "conv3_1"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv3_1"
@@ -625,7 +617,6 @@ layer {
   top:    "dec:loss@conv2_2"
   bottom: "dec:conv2_2"
   bottom: "conv2_2/pool"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv2_2/unpool"
@@ -664,7 +655,6 @@ layer {
   top:    "dec:loss@conv2_1"
   bottom: "dec:conv2_1"
   bottom: "conv2_1"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv2_1"
@@ -693,7 +683,6 @@ layer {
   top:    "dec:loss@conv1_2"
   bottom: "dec:conv1_2"
   bottom: "conv1_2/pool"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv1_2/unpool"
@@ -732,7 +721,6 @@ layer {
   top:    "dec:loss@conv1_1"
   bottom: "dec:conv1_1"
   bottom: "conv1_1"
-  loss_weight: 0
 }
 layer {
   name:   "dec:conv1_1"
@@ -762,7 +750,7 @@ layer {
   top:    "dec:loss@data/scaled"
   bottom: "dec:data"
   bottom: "data/scaled"
-  loss_weight: 1e-05
+  loss_weight: 1e-4
 }
 layer {
   name:   "fc6"
