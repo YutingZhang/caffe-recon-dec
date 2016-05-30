@@ -14,7 +14,6 @@ layer {
     kernel_size:  3
     weight_filler { type: "gaussian" std: 0.01 }
     bias_filler   { type: "constant" value: 0 }
-    engine: CUDNN
   }
   param   { lr_mult: 0 decay_mult: 1 }
   param   { lr_mult: 0 decay_mult: 0 }
@@ -36,7 +35,6 @@ layer {
     kernel_size:  3
     weight_filler { type: "gaussian" std: 0.01 }
     bias_filler   { type: "constant" value: 0 }
-    engine: CUDNN
   }
   param   { lr_mult: 0 decay_mult: 1 }
   param   { lr_mult: 0 decay_mult: 0 }
@@ -56,7 +54,6 @@ layer {
     pool:   MAX
     kernel_size: 2
     stride: 2
-    engine: CUDNN
   }
 }
 layer {
@@ -77,7 +74,6 @@ layer {
     kernel_size:  3
     weight_filler { type: "gaussian" std: 0.001 }
     bias_filler   { type: "constant" value: 0 }
-    engine: CUDNN
   }
   param   { lr_mult: 1 decay_mult: 1 }
   param   { lr_mult: 2 decay_mult: 0 }
@@ -107,7 +103,6 @@ layer {
     kernel_size:  3
     weight_filler { type: "gaussian" std: 0.001 }
     bias_filler   { type: "constant" value: 0 }
-    engine: CUDNN
   }
   param   { lr_mult: 1 decay_mult: 1 }
   param   { lr_mult: 2 decay_mult: 0 }
