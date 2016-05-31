@@ -153,11 +153,11 @@ int SaveArrayAsImages( int w, int h, int nCh, int num, const Dtype* data,
 
 #endif  // USE_OPENCV
 
-}  // namespace caffe
-
 void create_dir( const std::string& path, bool no_throw = true );
 
 void create_parent_dir( const std::string& path, bool no_throw = true );
+
+}  // namespace caffe
 
 
 #endif   // CAFFE_UTIL_IO_H_
