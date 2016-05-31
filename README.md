@@ -106,7 +106,7 @@ MATLAB need to be started in desktop mode in order to show the demo figures.
 
 Note that the `matcaffe` wrapper need to be compiled in advance by
 
-	> make 
+	$ make matcaffe
 
 References
 ==========
