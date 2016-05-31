@@ -6,7 +6,7 @@ addpath(RDMAT_ROOT);
 rdInit;
 
 % gpu mode
-caffe.set_gpu_mode();
+caffe.set_mode_gpu();
 
 % input image
 input_img_path = fullfile( RDMAT_ROOT, 'ILSVRC2012_val_00000011.JPEG' );
