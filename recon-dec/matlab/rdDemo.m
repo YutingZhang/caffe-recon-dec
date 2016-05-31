@@ -27,10 +27,10 @@ imshow( I_resized );
 title( 'input' );
 subplot(1,3,2);
 imshow( R_sae_first );
-title( sprintf( '%s-based\nSAE-first\n(5th layer)', 'vggnet') );
+title( sprintf( '%s-based\nSAE-first\n(5th layer)', 'VGGNet') );
 subplot(1,3,3);
 imshow( R_swwae_first );
-title( sprintf( '%s-based\nSWWAE-first\n(5th layer)', 'vggnet') );
+title( sprintf( '%s-based\nSWWAE-first\n(5th layer)', 'VGGNet') );
 
 % reconstruction (AlexNet, layer5)
 
@@ -44,7 +44,7 @@ imshow( I_resized );
 title( 'input' );
 subplot(1,2,2);
 imshow( R_swwae_first );
-title( sprintf( '%s-based\nSWWAE-first\n(5th layer)', 'alexnet') );
+title( sprintf( '%s-based\nSWWAE-first\n(5th layer)', 'AlexNet') );
 
 
 % cls + reconstruction
@@ -58,5 +58,7 @@ imshow( I_resized );
 title( 'input' );
 subplot(1,2,2);
 imshow( R_swwae_all );
-title( sprintf( '%s-based\nSWWAE-all\n(5th layer)', 'alexnet') );
-xlabel( ['Label: ' int2str(L_swwae_all)] );
+title( sprintf( '%s-based\nSWWAE-all\n(5th layer)', 'VGGNet') );
+SW=load(fullfile(RDMAT_ROOT,'synset_words')); SW=SW.SW;
+xlabel( sprintf('Label: %d\n%s', L_swwae_all, SW{L_swwae_all}) );
+
