@@ -22,7 +22,7 @@ Installation
 Please refer to the [official Caffe tutorial](http://caffe.berkeleyvision.org/installation.html) for compiling the code. 
 
 Apart from the requirement of the original Caffe, the support of C++11 standard, e.g., `-std=c++11` for GCC, are needed. 
-*Remark: *It is not hard to translate the code to non-C++11 version.
+*Remark*: It is not hard to translate the code to non-C++11 version.
 
 It has been tested with gcc-4.8.3, cuda-7.0, cudnn-4.0 on RedHat 6.x/7.x and Ubuntu 14.04. It should also work on other similar platforms. 
 
