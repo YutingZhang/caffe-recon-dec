@@ -3,9 +3,9 @@ function netx = rdNet( model_name )
 RD_ROOT = fileparts(fileparts( mfilename('fullpath') ));
 
 % locate model
-PROTOTXT_PATH = fullfile( RD_ROOT, [model_name '_depoly.prototxt'] );
+PROTOTXT_PATH = fullfile( RD_ROOT, [model_name '_deploy.prototxt'] );
 WEIGHT_PATH   = fullfile( RD_ROOT, [model_name '.caffemodel'] );
-assert( exist(PROTOTXT_PATH,'file'), 'No such model' );
+assert( exist(PROTOTXT_PATH,'file')~=0, 'No such model' );
 
 % fetch network from the web weights if necessary
 if ~exist( WEIGHT_PATH, 'file' )
