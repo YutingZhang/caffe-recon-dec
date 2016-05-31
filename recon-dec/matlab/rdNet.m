@@ -21,7 +21,7 @@ netx.on_cleanup = onCleanup( @() netx.net.reset() );
 % set up mean if necessary
 
 first_token_idx = find(model_name=='/',1);
-base_network = model_name(1:first_token_idx);
+base_network = model_name(1:(first_token_idx-1));
 
 switch base_network
     case 'vggnet'
@@ -30,12 +30,13 @@ switch base_network
         netx.mean = load(fullfile(RD_ROOT,'../matlab/+caffe/imagenet/ilsvrc_2012_mean.mat'));
         netx.mean = netx.mean.mean_data;
     otherwise
+        netx.mean = single(0);
 end
 data_shape=netx.net.blobs('data').shape();
 mean_shape=size(netx.mean);
 mean_shape=[mean_shape,ones(1,length(data_shape)-length(mean_shape))];
 rep_factor = (data_shape./mean_shape);
-assert( round(rep_factor)==rep_factor, 'mean does not match with data' );
+assert( all(round(rep_factor)==rep_factor), 'mean does not match with data' );
 netx.mean = repmat( netx.mean, rep_factor );
 
 input_blob_names = netx.net.inputs;
