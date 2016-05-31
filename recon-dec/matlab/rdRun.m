@@ -9,6 +9,7 @@ im_data = permute(im_data, [2, 1, 3, 4]);
 % convert from uint8 to single
 im_data = single(im_data);
 
+im_data = imresize( im_data, netx.geo_shape );
 im_data = bsxfun( @minus, im_data, netx.mean );
 
 netx.net.blobs(netx.im_input).set_data(im_data);

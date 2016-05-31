@@ -46,6 +46,7 @@ end
 netx.im_input     = 'data';
 netx.im_output    = 'dec:data';
 netx.label_output = 'fc8';
+netx.geo_shape    = data_shape(1:2);
 
 blob_names = netx.net.blob_names;
 
