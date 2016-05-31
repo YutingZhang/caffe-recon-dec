@@ -17,13 +17,13 @@ I = imread(input_img_path);
 
 sae_first   = rdNet('vggnet/recon/SAE-first/layer5');
 swwae_first = rdNet('vggnet/recon/SWWAE-first/layer5');
-R_sae_first   = rdRun(sae_first,I);
+[R_sae_first, ~, I_resized]   = rdRun(sae_first,I);
 R_swwae_first = rdRun(swwae_first,I);
 
 figure;
 clf
 subplot(1,3,1);
-imshow( I );
+imshow( I_resized );
 title( 'input' );
 subplot(1,3,2);
 imshow( R_sae_first );
@@ -35,12 +35,12 @@ title( sprintf( '%s-based\nSWWAE-first\n(5th layer)', 'vggnet') );
 % reconstruction (AlexNet, layer5)
 
 swwae_first = rdNet('alexnet/recon/SWWAE-first/layer5');
-R_swwae_first = rdRun(swwae_first,I);
+[R_swwae_first, ~, I_resized]   = rdRun(swwae_first,I);
 
 figure;
 clf
 subplot(1,2,1);
-imshow( I );
+imshow( I_resized );
 title( 'input' );
 subplot(1,2,2);
 imshow( R_swwae_first );

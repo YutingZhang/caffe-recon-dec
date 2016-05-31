@@ -23,16 +23,19 @@ netx.on_cleanup = onCleanup( @() netx.net.reset() );
 first_token_idx = find(model_name=='/',1);
 base_network = model_name(1:(first_token_idx-1));
 
+data_shape=netx.net.blobs('data').shape();
 switch base_network
     case 'vggnet'
         netx.mean = reshape( single([103.939 116.779 123.68]), [1 1 3] );
     case 'alexnet'
         netx.mean = load(fullfile(RD_ROOT,'../matlab/+caffe/imagenet/ilsvrc_2012_mean.mat'));
         netx.mean = netx.mean.mean_data;
+        netx.mean = netx.mean(...
+            round((size(netx.mean,1)-data_shape(1))/2)+(1:data_shape(1)), ...
+            round((size(netx.mean,2)-data_shape(2))/2)+(1:data_shape(2)),:);
     otherwise
         netx.mean = single(0);
 end
-data_shape=netx.net.blobs('data').shape();
 mean_shape=size(netx.mean);
 mean_shape=[mean_shape,ones(1,length(data_shape)-length(mean_shape))];
 rep_factor = (data_shape./mean_shape);
