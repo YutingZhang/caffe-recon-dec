@@ -48,6 +48,15 @@ title( sprintf( '%s-based\nSWWAE-first\n(5th layer)', 'alexnet') );
 
 
 % cls + reconstruction
-%swwae_all   = rdNet('vggnet/cls/SWWAE-all/layer5');
-%sae_all     = rdNet('vggnet/cls/SAE-all/layer5');
+swwae_all   = rdNet('vggnet/cls/SWWAE-all/layer5');
+[R_swwae_all, L_swwae_all, I_resized] = rdRun(swwae_all,I);
 
+figure;
+clf
+subplot(1,2,1);
+imshow( I_resized );
+title( 'input' );
+subplot(1,2,2);
+imshow( R_swwae_all );
+title( sprintf( '%s-based\nSWWAE-all\n(5th layer)', 'alexnet') );
+xlabel( ['Label: ' int2str(L_swwae_all)] );
