@@ -5,6 +5,9 @@ RDMAT_ROOT = fileparts( mfilename('fullpath') );
 addpath(RDMAT_ROOT);
 rdInit;
 
+% gpu mode
+caffe.set_gpu_mode();
+
 % input image
 input_img_path = fullfile( RDMAT_ROOT, 'ILSVRC2012_val_00000011.JPEG' );
 I = imread(input_img_path);
@@ -15,7 +18,7 @@ swwae_first = rdNet('vggnet/recon/SWWAE-first/layer5');
 R_sae_first   = rdRun(sae_first,I);
 R_swwae_first = rdRun(swwae_first,I);
 
-figure(1);
+figure;
 clf
 subplot(1,3,1);
 imshow( I );

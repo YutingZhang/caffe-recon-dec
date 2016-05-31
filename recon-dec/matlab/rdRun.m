@@ -1,4 +1,4 @@
-function [reconImg, predLabel] = rdRun( netx, inputImg )
+function [reconImg, predLabel, inputImg] = rdRun( netx, inputImg )
 
 im_data = inputImg;
 if size(im_data, 3) == 3
@@ -20,6 +20,8 @@ if isempty(netx.im_output)
 else
     reconImg = netx.net.blobs(netx.im_output).get_data();
     reconImg = bsxfun( @plus, im_data, reconImg+netx.mean/255 );
+    reconImg = permute(reconImg, [2, 1, 3, 4]);
+    reconImg = reconImg(:, :, [3, 2, 1], : );
 end
 
 if isempty(netx.label_output)
@@ -29,3 +31,4 @@ else
     [~,predLabel] = max(predScores);
 end
 
+inputImg = im_data;

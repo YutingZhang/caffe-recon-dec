@@ -456,14 +456,42 @@ static void get_init_key(MEX_ARGS) {
 
 // Usage: caffe_('reset')
 static void reset(MEX_ARGS) {
-  mxCHECK(nrhs == 0, "Usage: caffe_('reset')");
-  // Clear solvers and stand-alone nets
-  mexPrintf("Cleared %d solvers and %d stand-alone nets\n",
-      solvers_.size(), nets_.size());
-  solvers_.clear();
-  nets_.clear();
-  // Generate new init_key, so that handles created before becomes invalid
-  init_key = static_cast<double>(caffe_rng_rand());
+  mxCHECK(nrhs <= 1, 
+          "Usage: caffe_('reset')\n"
+          "       caffe_('reset', handle)");
+  if (!nrhs) {
+      // Clear solvers and stand-alone nets
+      mexPrintf("Cleared %d solvers and %d stand-alone nets\n",
+          solvers_.size(), nets_.size());
+      solvers_.clear();
+      nets_.clear();
+      // Generate new init_key, so that handles created before becomes invalid
+      init_key = static_cast<double>(caffe_rng_rand());
+  } else {
+      mxCHECK( mxIsStruct(prhs[0]) && mxIsScalar(prhs[0]), 
+              "argument 2 must be a struct scalar" );
+      char* obj = handle_to_ptr<char>(prhs[0]);
+      bool is_found = false;
+      if (~is_found) {
+          for (auto iter = solvers_.begin(); iter != solvers_.end(); ++iter ) {
+              if ((void*)(iter->get())==(void*)obj) {
+                  solvers_.erase(iter);
+                  is_found = true;
+                  break;
+              }
+          }
+      }
+      if (~is_found) {
+          for (auto iter = nets_.begin(); iter != nets_.end(); ++iter ) {
+              if ((void*)(iter->get())==(void*)obj) {
+                  nets_.erase(iter);
+                  is_found = true;
+                  break;
+              }
+          }
+      }
+      mxCHECK( is_found, "Cannot find the specific object" );
+  }
 }
 
 // Usage: caffe_('read_mean', mean_proto_file)
