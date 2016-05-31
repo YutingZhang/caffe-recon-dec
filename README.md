@@ -39,6 +39,7 @@ In terms of functionality, this code extends the official Caffe in the following
 	* We want to avoid conflicts with some (non-official) implementation of unpooling layers. 
 * It provides a `SafeInvLayer`, which performs `f(x)=0` if `x=0`, and `f(x)=1/x` otherwise. It is useful to normalize the unpooled activations by unpooling weights.
 * It provides an `ImageOutputLayer` to easily dump activations to image files. 
+* The `matcaffe` wrapper support reset a single `caffe.Net` and `caffe.Solver` 
 
 Network Definitions
 ===================
@@ -89,6 +90,23 @@ As to the baseline classification-only networks:
 
 * We trained an AlexNet from scratch with all `LRNLayer` removed for a cleaner architecture. 
 * We downloaded the 16-layer VGGNet (Model D in [2]) from <http://www.robots.ox.ac.uk/~vgg/research/very_deep/>, and converted/re-saved the `caffemodel` to match the recent version of Caffe. 
+
+Demo in MATLAB
+=============
+
+Code in MATLAB for using trained models to reconstruct and classify images are in `recon-dec/matlab`
+
+A quick demo is at `recon-dec/matlab/rdDemo.m`. To run it, just do
+
+	$ cd CAFFE_ROOT/recon-dec/matlab
+	$ matlab
+	> rdDemo
+
+MATLAB need to be started in desktop mode in order to show the demo figures.
+
+Note that the `matcaffe` wrapper need to be compiled in advance by
+
+	> make 
 
 References
 ==========
