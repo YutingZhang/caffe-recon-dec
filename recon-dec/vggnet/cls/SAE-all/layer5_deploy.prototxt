@@ -760,8 +760,3 @@ layer {
   bottom: "fc8"
   bottom: "label"
 }
-layer {
-  name:   "silence"
-  type:   "Silence"
-  bottom: "label"
-}

@@ -283,8 +283,3 @@ layer {
     output_prefix: "dump/dec_data_add-mean/"
   }
 }
-layer {
-  name:   "silence"
-  type:   "Silence"
-  bottom: "mean"
-}

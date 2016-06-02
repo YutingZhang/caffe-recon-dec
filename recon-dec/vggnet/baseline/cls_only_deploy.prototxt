@@ -420,8 +420,3 @@ layer {
   bottom: "label"
   accuracy_param { top_k: 5 }
 }
-layer {
-  name:   "silence"
-  type:   "Silence"
-  bottom: "label"
-}
