@@ -410,13 +410,6 @@ layer {
   bottom: "dec:conv4_3"
 }
 layer {
-  name:   "dec:loss@conv4_3"
-  type:   "EuclideanLoss"
-  top:    "dec:loss@conv4_3"
-  bottom: "dec:conv4_3"
-  bottom: "conv4_3/pool"
-}
-layer {
   name:   "dec:conv4_3/unpool"
   type:   "Depooling"
   top:    "dec:conv4_3/unpool"
