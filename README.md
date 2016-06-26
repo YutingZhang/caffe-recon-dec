@@ -86,7 +86,7 @@ The trained models for networks in `recon-dec` can be downloaded by the bash scr
 * Without any argument, it fetches all available models. 
 * The user can also specify a particular model to download by `recon-dec/fetch_model.sh [model_name]`, where name of all available models can be obtained by `recon-dec/list_model.sh` 
 
-Note that the model files are actually hosted on *Google drive*. You should make sure you can connect to it. 
+Note that the model files are hosted on **Google drive**. You should make sure you can connect to it. 
 
 As to the baseline classification-only networks: 
 
