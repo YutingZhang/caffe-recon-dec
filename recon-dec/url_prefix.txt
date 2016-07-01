@@ -1,1 +1,1 @@
-http://www.ytzhang.net/files/publications/2016-icml-recon-dec/models/
+http://www.ytzhang.net/files/recon-dec/models/
