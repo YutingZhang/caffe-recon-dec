@@ -64,6 +64,8 @@ The decoder for reconstructing network activations to images are provided as
 
 where `[layer_id]` indicates which macro-layer of the encoder produces the input activations to the decoder. The decoders are supposed to be trained without affecting the encoder parameters. `*_deploy.prototxt` is the normal version of the network, and `*_dump.prototxt` is used to dump reconstructed images into disk.  
 
+Extra VGGNet reconstruction models for fc6,7,8 are in [recon-dec/vggnet/recon/SWWAE-first.extra](https://github.com/YutingZhang/caffe-recon-dec/tree/master/recon-dec/vggnet/recon/SWWAE-first.extra)
+
 The networks for joint reconstruction and classification are provided as
 
 	recon-dec/[base_network]/cls/[model_type]/layer[layer_id]_depoly.prototxt

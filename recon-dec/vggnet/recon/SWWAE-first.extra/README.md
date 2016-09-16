@@ -1,5 +1,5 @@
-Extra VGG Models
-================
+Extra VGGNet Models
+===================
 
 In this folder, we provide SWWAE-first image reconstruction models for fc6,7,8 features from the 16-layer VGGNet.
 We did not report results in our paper using these model, since the image classification session uses only the decoder up to pool5.
