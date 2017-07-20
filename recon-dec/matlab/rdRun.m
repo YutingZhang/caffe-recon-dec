@@ -19,7 +19,7 @@ if isempty(netx.im_output)
     reconImg = [];
 else
     reconImg = netx.net.blobs(netx.im_output).get_data();
-    reconImg = bsxfun( @plus, reconImg, reconImg+netx.mean/255 );
+    reconImg = bsxfun( @plus, reconImg, netx.mean/255 );
     reconImg = permute(reconImg, [2, 1, 3, 4]);
     reconImg = reconImg(:, :, [3, 2, 1], : );
 end
@@ -32,6 +32,6 @@ else
 end
 
 inputImg = im_data./255;
-inputImg = bsxfun( @plus, inputImg, inputImg+netx.mean/255 );
+inputImg = bsxfun( @plus, inputImg, netx.mean/255 );
 inputImg = permute(inputImg, [2, 1, 3, 4]);
 inputImg = inputImg(:, :, [3, 2, 1], : );
