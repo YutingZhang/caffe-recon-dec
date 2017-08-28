@@ -286,13 +286,6 @@ layer {
   bottom: "dec:conv4_2"
 }
 layer {
-  name:   "dec:loss@conv4_2"
-  type:   "EuclideanLoss"
-  top:    "dec:loss@conv4_2"
-  bottom: "dec:conv4_2"
-  bottom: "conv4_2"
-}
-layer {
   name:   "dec:conv4_2"
   type:   "Deconvolution"
   top:    "dec:conv4_1"
@@ -314,13 +307,6 @@ layer {
   bottom: "dec:conv4_1"
 }
 layer {
-  name:   "dec:loss@conv4_1"
-  type:   "EuclideanLoss"
-  top:    "dec:loss@conv4_1"
-  bottom: "dec:conv4_1"
-  bottom: "conv4_1"
-}
-layer {
   name:   "dec:conv4_1"
   type:   "Deconvolution"
   top:    "dec:conv3_3"
@@ -340,13 +326,6 @@ layer {
   type:   "ReLU"
   top:    "dec:conv3_3"
   bottom: "dec:conv3_3"
-}
-layer {
-  name:   "dec:loss@conv3_3"
-  type:   "EuclideanLoss"
-  top:    "dec:loss@conv3_3"
-  bottom: "dec:conv3_3"
-  bottom: "conv3_3/pool"
 }
 layer {
   name:   "dec:conv3_3/unpool"
@@ -377,13 +356,6 @@ layer {
   bottom: "dec:conv3_2"
 }
 layer {
-  name:   "dec:loss@conv3_2"
-  type:   "EuclideanLoss"
-  top:    "dec:loss@conv3_2"
-  bottom: "dec:conv3_2"
-  bottom: "conv3_2"
-}
-layer {
   name:   "dec:conv3_2"
   type:   "Deconvolution"
   top:    "dec:conv3_1"
@@ -405,13 +377,6 @@ layer {
   bottom: "dec:conv3_1"
 }
 layer {
-  name:   "dec:loss@conv3_1"
-  type:   "EuclideanLoss"
-  top:    "dec:loss@conv3_1"
-  bottom: "dec:conv3_1"
-  bottom: "conv3_1"
-}
-layer {
   name:   "dec:conv3_1"
   type:   "Deconvolution"
   top:    "dec:conv2_2"
@@ -431,13 +396,6 @@ layer {
   type:   "ReLU"
   top:    "dec:conv2_2"
   bottom: "dec:conv2_2"
-}
-layer {
-  name:   "dec:loss@conv2_2"
-  type:   "EuclideanLoss"
-  top:    "dec:loss@conv2_2"
-  bottom: "dec:conv2_2"
-  bottom: "conv2_2/pool"
 }
 layer {
   name:   "dec:conv2_2/unpool"
@@ -468,13 +426,6 @@ layer {
   bottom: "dec:conv2_1"
 }
 layer {
-  name:   "dec:loss@conv2_1"
-  type:   "EuclideanLoss"
-  top:    "dec:loss@conv2_1"
-  bottom: "dec:conv2_1"
-  bottom: "conv2_1"
-}
-layer {
   name:   "dec:conv2_1"
   type:   "Deconvolution"
   top:    "dec:conv1_2"
@@ -494,13 +445,6 @@ layer {
   type:   "ReLU"
   top:    "dec:conv1_2"
   bottom: "dec:conv1_2"
-}
-layer {
-  name:   "dec:loss@conv1_2"
-  type:   "EuclideanLoss"
-  top:    "dec:loss@conv1_2"
-  bottom: "dec:conv1_2"
-  bottom: "conv1_2/pool"
 }
 layer {
   name:   "dec:conv1_2/unpool"
@@ -529,13 +473,6 @@ layer {
   type:   "ReLU"
   top:    "dec:conv1_1"
   bottom: "dec:conv1_1"
-}
-layer {
-  name:   "dec:loss@conv1_1"
-  type:   "EuclideanLoss"
-  top:    "dec:loss@conv1_1"
-  bottom: "dec:conv1_1"
-  bottom: "conv1_1"
 }
 layer {
   name:   "dec:conv1_1"

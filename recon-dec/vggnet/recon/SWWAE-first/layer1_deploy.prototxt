@@ -87,13 +87,6 @@ layer {
   bottom: "dec:conv1_1"
 }
 layer {
-  name:   "dec:loss@conv1_1"
-  type:   "EuclideanLoss"
-  top:    "dec:loss@conv1_1"
-  bottom: "dec:conv1_1"
-  bottom: "conv1_1"
-}
-layer {
   name:   "dec:conv1_1"
   type:   "Deconvolution"
   top:    "dec:data"
